@@ -83,6 +83,7 @@ function! s:guess(lines) abort
     if indent > 1 && (indent < 4 || indent % 2 == 0) &&
           \ get(options, 'shiftwidth', 99) > indent
       let options.shiftwidth = indent
+      let options.tabstop = indent
     endif
   endfor
 
@@ -130,9 +131,15 @@ function! s:apply_if_ready(options) abort
   if !has_key(a:options, 'expandtab') || !has_key(a:options, 'shiftwidth')
     return 0
   else
+    let mdline = " vim: set "
     for [option, value] in items(a:options)
-      call setbufvar('', '&'.option, value)
+      if option ==# "expandtab"
+        let mdline = mdline . (value == 0 ? "no" : "") . option
+      else
+        let mdline = mdline . option . "=" . value . " "
+      endif
     endfor
+    call append(0, substitute(&commentstring, "%s", mdline . ":", ""))
     return 1
   endif
 endfunction
@@ -176,31 +183,6 @@ function! s:detect() abort
   endif
 endfunction
 
-setglobal smarttab
-
-if !exists('g:did_indent_on')
-  filetype indent on
-endif
-
-function! SleuthIndicator() abort
-  let sw = &shiftwidth ? &shiftwidth : &tabstop
-  if &expandtab
-    return 'sw='.sw
-  elseif &tabstop == sw
-    return 'ts='.&tabstop
-  else
-    return 'sw='.sw.',ts='.&tabstop
-  endif
-endfunction
-
-augroup sleuth
-  autocmd!
-  autocmd FileType *
-        \ if get(b:, 'sleuth_automatic', get(g:, 'sleuth_automatic', 1))
-        \ | call s:detect() | endif
-  autocmd User Flags call Hoist('buffer', 5, 'SleuthIndicator')
-augroup END
-
-command! -bar -bang Sleuth call s:detect()
+command! -bar -bang IML call s:detect()
 
 " vim:set et sw=2:
