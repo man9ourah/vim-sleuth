@@ -131,7 +131,7 @@ function! s:apply_if_ready(options) abort
   if !has_key(a:options, 'expandtab') || !has_key(a:options, 'shiftwidth')
     return 0
   else
-    let mdline = "set "
+    let mdline = ""
     for [option, value] in items(a:options)
       if option ==# "expandtab"
         let mdline = mdline . (value == 0 ? "no" : "") . option
@@ -140,9 +140,9 @@ function! s:apply_if_ready(options) abort
       endif
     endfor
     " apply the options
-    execute mdline
+    execute "setlocal " . mdline
     " then write the modeline
-    let mdline =  " vim: " . mdline
+    let mdline =  " vim: set " . mdline
     call append(0, substitute(&commentstring, "%s", mdline . ":", ""))
     return 1
   endif
