@@ -131,7 +131,7 @@ function! s:apply_if_ready(options) abort
   if !has_key(a:options, 'expandtab') || !has_key(a:options, 'shiftwidth')
     return 0
   else
-    let mdline = " vim: set "
+    let mdline = "set "
     for [option, value] in items(a:options)
       if option ==# "expandtab"
         let mdline = mdline . (value == 0 ? "no" : "") . option
@@ -139,6 +139,10 @@ function! s:apply_if_ready(options) abort
         let mdline = mdline . option . "=" . value . " "
       endif
     endfor
+    " apply the options
+    execute mdline
+    " then write the modeline
+    let mdline =  " vim: " . mdline
     call append(0, substitute(&commentstring, "%s", mdline . ":", ""))
     return 1
   endif
